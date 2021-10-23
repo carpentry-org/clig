@@ -1,0 +1,19 @@
+(load "clig.carp")
+
+(def b (Clig.bool-flag @"bool" \b @"false"))
+(def p (Clig.new @"my-program" @"doesn't do anything interesting"))
+
+(defn main []
+  (do (Clig.add-flag &p &b)
+      (match (Clig.parse &p)
+        (Result.Error e) (IO.println &e)
+        (Result.Success _)
+          (do (IO.println "success")
+              (IO.println &(str (CligProgram.args &p)))
+              (IO.println &(str (CligProgram.name &p)))
+              (IO.println &(str (CligProgram.flags &p)))
+              (IO.println (CligFlag.value &(unsafe-from (Clig.get-flag &p "bool"))))
+              (IO.println &(str &(Clig.get-flag &p "carp")))
+              (IO.println &(Clig.get &p "bool"))
+              (IO.println &(Clig.get &p "carp"))
+              (IO.println &(str (CligProgram.errors &p)))))))

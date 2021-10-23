@@ -1,0 +1,124 @@
+;; TODO: Rename to Error once initer bug #1343 is fixed.
+;; TODO: Move into module once scoring is fixed.
+  (deftype CligErr
+    (FlagAlreadyExists [String])
+    (UnknownFlag       [String])
+    (NoArgument        [String]))
+
+  (deftype CligType String Int Float Bool)
+
+  (deftype CligFlag [name    String
+                     short   Char
+                     t       CligType
+                     default String
+                     value   String])
+
+   (defmodule CligFlag
+     (sig v-prn (Fn [CligFlag] String))
+     (defn v-prn [f]
+       (CligFlag.prn &f))
+     (implements prn v-prn)
+   )
+
+  (deftype CligProgram [name   String
+                        flags  (Map String CligFlag)
+                        errors (Array CligErr)
+                        args   (Array String)
+                        usage  String])
+
+  (defn err-string [e]
+    (match e
+      (CligErr.FlagAlreadyExists s) s
+      (CligErr.UnknownFlag s) s
+      (CligErr.NoArgument s) s))
+
+(defmodule Clig
+  ;; Option initializers
+  (defn bool-flag [long-name short-name default-value]
+    (CligFlag long-name short-name (CligType.Bool) default-value
+    @&default-value))
+  (defn string-flag [long-name short-name default-value]
+    (CligFlag long-name short-name (CligType.String) default-value
+    @&default-value))
+  (defn int-flag [long-name short-name default-value]
+    (CligFlag long-name short-name (CligType.Int) default-value @&default-value))
+  (defn float-flag [long-name short-name default-value]
+    (CligFlag long-name short-name (CligType.Float) default-value @&default-value))
+
+  (doc new "Returns a new Clig program.")
+  (defn new [name usage-string]
+    (let [options (Map.create)
+          errs    []
+          args    []]
+      (CligProgram.init name options errs args usage-string)))
+
+  (doc usage "Returns the usage string for a program.")
+  (defn usage [program]
+    (CligProgram.usage program))
+
+  (doc add-flag "Adds a flag to a Clig program.")
+  (defn add-flag [program the-flag]
+    (let [existing (CligProgram.flags program)
+          name     (CligFlag.name the-flag)
+          errs     (CligProgram.errors program)]
+      (match (get-maybe existing name)
+        (Maybe.Just f)
+          (push-back! errs (CligErr.FlagAlreadyExists (String.concat &[@"the flag
+          " @name @" already exists"])))
+        (Maybe.Nothing) (Map.put! existing name the-flag))))
+
+  (doc get-flag "Retrieves a program flag.")
+  (defn get-flag [program flag-name]
+    (let [flags (CligProgram.flags program)]
+      (get-maybe flags flag-name)))
+
+  (doc get "Retrieves the value of a program flag. Returns an empty string when
+  the flag does not exist.")
+  (defn get [program flag-name]
+    (let [flags (CligProgram.flags program)
+          default (CligFlag @"" \space (CligType.String) @"" @"")
+          flag  (get-with-default flags flag-name &default)]
+      @(CliFlag.value &flag)))
+
+  ;; TODO: Match on short names
+  (defn parse-flag [program flag-name arg]
+    (let [flags (CligProgram.flags program)
+          errs  (CligProgram.errors program)
+          name  (Pattern.substitute #"^\-\-?" flag-name "" 1)]
+      (match (get-maybe flags &name)
+        (Maybe.Nothing)
+          (do (push-back! errs (CligErr.UnknownFlag (String.concat &[@"Unknown
+          flag " @flag-name])))
+              (Result.Error (err-string @(unsafe-first errs))))
+        (Maybe.Just f)
+          (match-ref (CligFlag.t &f)
+            (CligType.Bool)
+              (do (Map.put! flags &name &(CligFlag.set-value f @"true"))
+                  (Result.Success 0))
+            _ (match arg
+                (Maybe.Nothing)
+                  (do (push-back! errs (CligErr.NoArgument (String.concat &[@"No
+                  Argument " @flag-name])))
+                      (Result.Error (err-string @(unsafe-first errs))))
+                (Maybe.Just a)
+                  (do (Map.put! flags &name &(CligFlag.set-value f @"value"))
+                      (Result.Success 1)))))))
+
+  (doc parse "Parses program flags.")
+  (defn parse [program]
+    (let-do [errs (CligProgram.errors program)
+             args &System.args
+             res  (Result.Success ())
+             cli-args (CligProgram.args program)]
+      (if (not (empty? errs))
+          (Result.Error (err-string @(unsafe-first errs)))
+          (do (for [i 0 (StaticArray.length args)]
+                (let [arg (unsafe-nth args i)]
+                  (if (not (starts-with? arg "-"))
+                      (when (not (= i 0)) (push-back! cli-args @arg))
+                      (match (parse-flag program arg (StaticArray.nth args (+ i 1)))
+                        (Result.Success consumed) (+= i consumed)
+                        (Result.Error err) (do (set! res (Result.Error err))
+                                               (break))))))
+              res))))
+)
