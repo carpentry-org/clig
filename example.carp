@@ -6,7 +6,7 @@
 (defn main []
   (do (Clig.add-flag &p &b)
       (match (Clig.parse &p)
-        (Result.Error e) (IO.println &e)
+        (Result.Error e) (IO.println &(str e))
         (Result.Success _)
           (do (IO.println "success")
               (IO.println &(str (CligProgram.args &p)))

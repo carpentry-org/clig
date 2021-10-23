@@ -2,10 +2,10 @@
 (load "src/error.carp")
 
 (deftype CligProgram [name   String
-                       flags  (Map String CligFlag)
-                       errors (Array CligErr)
-                       args   (Array String)
-                       usage  String])
+                      flags  (Map String CligFlag)
+                      errors (Array CligErr)
+                      args   (Array String)
+                      usage  String])
 (defmodule Clig
   (doc new "Returns a new Clig program.")
   (defn new [name usage-string]
@@ -24,8 +24,7 @@
           name     (CligFlag.name the-flag)
           errs     (CligProgram.errors program)]
       (match (get-maybe existing name)
-        (Maybe.Just f)
-          (push-back! errs (Clig.Err.flag-exists @name))
+        (Maybe.Just _)  (push-back! errs (Clig.Err.flag-exists @name))
         (Maybe.Nothing) (Map.put! existing name the-flag))))
 
   (doc get-flag "Retrieves a program flag.")
@@ -49,7 +48,7 @@
       (match (get-maybe flags &name)
         (Maybe.Nothing)
           (do (push-back! errs (Clig.Err.unknown-flag @flag-name))
-              (Result.Error (str @(unsafe-first errs))))
+              (Result.Error @(unsafe-first errs)))
         (Maybe.Just f)
           (match-ref (CligFlag.t &f)
             (CligType.Bool)
@@ -58,7 +57,7 @@
             _ (match arg
                 (Maybe.Nothing)
                   (do (push-back! errs (Clig.Err.missing-argument @flag-name))
-                      (Result.Error (str @(unsafe-first errs))))
+                      (Result.Error @(unsafe-first errs)))
                 (Maybe.Just a)
                   (do (Map.put! flags &name &(CligFlag.set-value f @"value"))
                       (Result.Success 1)))))))
@@ -70,7 +69,7 @@
              res  (Result.Success ())
              cli-args (CligProgram.args program)]
       (if (not (empty? errs))
-          (Result.Error (str @(unsafe-first errs)))
+          (Result.Error @(unsafe-first errs))
           (do (for [i 0 (StaticArray.length args)]
                 (let [arg (unsafe-nth args i)]
                   (if (not (starts-with? arg "-"))
