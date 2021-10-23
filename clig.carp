@@ -40,7 +40,7 @@
   the flag does not exist.")
   (defn get [program flag-name]
     (let [flags (CligProgram.flags program)
-          default (CligFlag @"" \space (CligType.String) @"" @"" @"")
+          default (CligFlag @"" (Maybe.Nothing) (CligType.String) @"" @"" @"")
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
 

@@ -1,10 +1,12 @@
 (load "clig.carp")
 
-(def b (Clig.bool-flag @"bool" \b @"false" @"Whether or not to do something"))
+(def b (Clig.bool-flag @"bool" (Maybe.Just @"b") @"false" @"Whether or not to do something"))
+(def s (Clig.string-flag @"strr" (Maybe.Nothing) @"" @"some kind of string"))
 (def p (Clig.new @"my-program" @"doesn't do anything interesting"))
 
 (defn main []
   (do (Clig.add-flag &p &b)
+      (Clig.add-flag &p &s)
       (match (Clig.parse &p true)
         (Result.Error e) (IO.println &(str e))
         (Result.Success _)

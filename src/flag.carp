@@ -1,7 +1,7 @@
 (deftype CligType String Int Float Bool)
 
 (deftype CligFlag [name        String
-                   short       Char
+                   short       (Maybe String)
                    t           CligType
                    default     String
                    value       String
@@ -46,7 +46,13 @@
               description))
 
   (defn flag-usage [flag]
-    (let [name (String.concat &[@"--" @(CligFlag.name flag)])
-          desc @(CligFlag.description flag)]
+    (let-do [name (String.concat &[@"--" @(CligFlag.name flag)])
+             desc @(CligFlag.description flag)
+             default (CligFlag.default flag)]
+      (match-ref (CligFlag.short flag)
+        (Maybe.Just s) (set! name (String.concat &[name @" (-" @s @")"]))
+        (Maybe.Nothing) ())
+      (when (not (empty? default))
+        (set! desc (String.concat &[desc @"\tdefault value: " @default])))
       (String.join ": " &[name desc])))
 )
