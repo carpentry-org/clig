@@ -45,6 +45,19 @@
               @&default-value
               description))
 
+  (defn type-validation [flag]
+    (let [val (CligFlag.value flag)]
+      (match-ref (CligFlag.t flag)
+        (CligType.String) true
+        (CligType.Bool) (or (= val "true") (= val "false"))
+        (CligType.Int) (just? &(Int.from-string val))
+        (CligType.Float) (just? &(Float.from-string val))
+        _ false)))
+
+  (defn valid? [flag]
+      (type-validation flag))
+
+
   (defn flag-usage [flag]
     (let-do [name (String.concat &[@"--" @(CligFlag.name flag)])
              desc @(CligFlag.description flag)

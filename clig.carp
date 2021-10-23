@@ -40,7 +40,12 @@
   the flag does not exist.")
   (defn get [program flag-name]
     (let [flags (CligProgram.flags program)
-          default (CligFlag @"" (Maybe.Nothing) (CligType.String) @"" @"" @"")
+          default (CligFlag @"" 
+                            (Maybe.Nothing) 
+                            (CligType.String) 
+                            @"" 
+                            @"" 
+                            @"")
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
 
@@ -63,8 +68,12 @@
                   (do (push-back! errs (Clig.Err.missing-argument @flag-name))
                       (Result.Error @(unsafe-first errs)))
                 (Maybe.Just a)
-                  (do (Map.put! flags &name &(CligFlag.set-value f a))
-                      (Result.Success 1)))))))
+                  (do  (Map.put! flags &name &(CligFlag.set-value f @&a))
+                       (if (valid? &(unsafe-from (get-flag program &name)))
+                           (Result.Success 1)
+                           (do (push-back! errs (Clig.Err.invalid-argument @flag-name
+                                                                           @&a))
+                               (Result.Error @(unsafe-first errs))))))))))
 
   (doc parse "Parses program flags.")
   (defn parse [program fail]

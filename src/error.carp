@@ -3,7 +3,8 @@
 (deftype CligErr
     (FlagAlreadyExists [String])
     (UnknownFlag       [String])
-    (MissingArgument   [String]))
+    (MissingArgument   [String])
+    (InvalidArgument   [String]))
 
 (defmodule Clig
   (defmodule Err
@@ -16,12 +17,16 @@
     (defn missing-argument [name]
       (let [e (String.concat &[@"missing argument " name])]
         (CligErr.MissingArgument e)))
+    (defn invalid-argument [name arg]
+      (let [e (String.concat &[@"invalid argument for flag " name @": " arg])]
+        (CligErr.InvalidArgument e)))
 
     (defn to-string [e]
       (match e
         (CligErr.FlagAlreadyExists s) s
         (CligErr.UnknownFlag s) s
         (CligErr.MissingArgument s) s
+        (CligErr.InvalidArgument s) s
         _ @"unrecognized error"))
     (implements str to-string)
   )
