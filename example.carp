@@ -1,6 +1,6 @@
 (load "clig.carp")
 
-(def b (Clig.bool-flag @"bool" \b @"false"))
+(def b (Clig.bool-flag @"bool" \b @"false" @"Whether or not to do something"))
 (def p (Clig.new @"my-program" @"doesn't do anything interesting"))
 
 (defn main []

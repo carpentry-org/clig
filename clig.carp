@@ -7,11 +7,12 @@
 
   (deftype CligType String Int Float Bool)
 
-  (deftype CligFlag [name    String
-                     short   Char
-                     t       CligType
-                     default String
-                     value   String])
+  (deftype CligFlag [name        String
+                     short       Char
+                     t           CligType
+                     default     String
+                     value       String
+                     description String])
 
    (defmodule CligFlag
      (sig v-prn (Fn [CligFlag] String))
@@ -34,16 +35,34 @@
 
 (defmodule Clig
   ;; Option initializers
-  (defn bool-flag [long-name short-name default-value]
-    (CligFlag long-name short-name (CligType.Bool) default-value
-    @&default-value))
-  (defn string-flag [long-name short-name default-value]
-    (CligFlag long-name short-name (CligType.String) default-value
-    @&default-value))
-  (defn int-flag [long-name short-name default-value]
-    (CligFlag long-name short-name (CligType.Int) default-value @&default-value))
-  (defn float-flag [long-name short-name default-value]
-    (CligFlag long-name short-name (CligType.Float) default-value @&default-value))
+  (defn bool-flag [long-name short-name default-value description]
+    (CligFlag long-name
+              short-name
+              (CligType.Bool)
+              default-value
+              @&default-value
+              description))
+  (defn string-flag [long-name short-name default-value description]
+    (CligFlag long-name
+              short-name
+              (CligType.String)
+              default-value
+              @&default-value
+              description))
+  (defn int-flag [long-name short-name default-value description]
+    (CligFlag long-name
+              short-name
+              (CligType.Int)
+              default-value
+              @&default-value
+              description))
+  (defn float-flag [long-name short-name default-value description]
+    (CligFlag long-name
+              short-name
+              (CligType.Float)
+              default-value
+              @&default-value
+              description))
 
   (doc new "Returns a new Clig program.")
   (defn new [name usage-string]
@@ -76,7 +95,7 @@
   the flag does not exist.")
   (defn get [program flag-name]
     (let [flags (CligProgram.flags program)
-          default (CligFlag @"" \space (CligType.String) @"" @"")
+          default (CligFlag @"" \space (CligType.String) @"" @"" @"")
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
 
