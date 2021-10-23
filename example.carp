@@ -16,4 +16,5 @@
               (IO.println &(str &(Clig.get-flag &p "carp")))
               (IO.println &(Clig.get &p "bool"))
               (IO.println &(Clig.get &p "carp"))
-              (IO.println &(str (CligProgram.errors &p)))))))
+              (IO.println &(str (CligProgram.errors &p)))
+              (IO.println &(Clig.usage &p))))))

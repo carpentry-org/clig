@@ -16,7 +16,11 @@
 
   (doc usage "Returns the usage string for a program.")
   (defn usage [program]
-    (CligProgram.usage program))
+    (let [flags (Map.vals (CligProgram.flags program))
+          flag-helps (copy-map &flag-usage &flags)
+          cli-help (String.join ": " &[@(CligProgram.name program) @(CliProgram.usage program)])
+          full-help (Array.concat &[[cli-help] flag-helps])]
+      (String.join "\n\t" &full-help)))
 
   (doc add-flag "Adds a flag to a Clig program.")
   (defn add-flag [program the-flag]

@@ -44,4 +44,9 @@
               default-value
               @&default-value
               description))
+
+  (defn flag-usage [flag]
+    (let [name (String.concat &[@"--" @(CligFlag.name flag)])
+          desc @(CligFlag.description flag)]
+      (String.join ": " &[name desc])))
 )
