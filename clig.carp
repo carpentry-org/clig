@@ -1,25 +1,11 @@
+(load "src/flag.carp")
+
 ;; TODO: Rename to Error once initer bug #1343 is fixed.
 ;; TODO: Move into module once scoring is fixed.
   (deftype CligErr
     (FlagAlreadyExists [String])
     (UnknownFlag       [String])
     (NoArgument        [String]))
-
-  (deftype CligType String Int Float Bool)
-
-  (deftype CligFlag [name        String
-                     short       Char
-                     t           CligType
-                     default     String
-                     value       String
-                     description String])
-
-   (defmodule CligFlag
-     (sig v-prn (Fn [CligFlag] String))
-     (defn v-prn [f]
-       (CligFlag.prn &f))
-     (implements prn v-prn)
-   )
 
   (deftype CligProgram [name   String
                         flags  (Map String CligFlag)
@@ -34,36 +20,6 @@
       (CligErr.NoArgument s) s))
 
 (defmodule Clig
-  ;; Option initializers
-  (defn bool-flag [long-name short-name default-value description]
-    (CligFlag long-name
-              short-name
-              (CligType.Bool)
-              default-value
-              @&default-value
-              description))
-  (defn string-flag [long-name short-name default-value description]
-    (CligFlag long-name
-              short-name
-              (CligType.String)
-              default-value
-              @&default-value
-              description))
-  (defn int-flag [long-name short-name default-value description]
-    (CligFlag long-name
-              short-name
-              (CligType.Int)
-              default-value
-              @&default-value
-              description))
-  (defn float-flag [long-name short-name default-value description]
-    (CligFlag long-name
-              short-name
-              (CligType.Float)
-              default-value
-              @&default-value
-              description))
-
   (doc new "Returns a new Clig program.")
   (defn new [name usage-string]
     (let [options (Map.create)
