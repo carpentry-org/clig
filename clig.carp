@@ -63,7 +63,7 @@
                       (Result.Success 1)))))))
 
   (doc parse "Parses program flags.")
-  (defn parse [program]
+  (defn parse [program fail]
     (let-do [errs (CligProgram.errors program)
              args &System.args
              res  (Result.Success ())
@@ -77,6 +77,6 @@
                       (match (parse-flag program arg (StaticArray.nth args (+ i 1)))
                         (Result.Success consumed) (+= i consumed)
                         (Result.Error err) (do (set! res (Result.Error err))
-                                               (break))))))
+                                               (if fail (break) ()))))))
               res))))
 )
