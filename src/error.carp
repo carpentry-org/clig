@@ -1,0 +1,28 @@
+;; TODO: Rename to Error once initer bug #1343 is fixed.
+;; TODO: Move into module once scoring is fixed.
+(deftype CligErr
+    (FlagAlreadyExists [String])
+    (UnknownFlag       [String])
+    (MissingArgument   [String]))
+
+(defmodule Clig
+  (defmodule Err
+    (defn flag-exists [name]
+      (let [e (String.concat &[@"the flag " name @" already exists"])]
+        (CligErr.FlagAlreadyExists e)))
+    (defn unknown-flag [name]
+      (let [e (String.concat &[@"unknown flag " name])]
+        (CligErr.UnknownFlag e)))
+    (defn missing-argument [name]
+      (let [e (String.concat &[@"missing argument " name])]
+        (CligErr.MissingArgument e)))
+
+    (defn to-string [e]
+      (match e
+        (CligErr.FlagAlreadyExists s) s
+        (CligErr.UnknownFlag s) s
+        (CligErr.MissingArgument s) s
+        _ @"unrecognized error"))
+    (implements str to-string)
+  )
+)
