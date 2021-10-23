@@ -63,7 +63,7 @@
                   (do (push-back! errs (Clig.Err.missing-argument @flag-name))
                       (Result.Error @(unsafe-first errs)))
                 (Maybe.Just a)
-                  (do (Map.put! flags &name &(CligFlag.set-value f @"value"))
+                  (do (Map.put! flags &name &(CligFlag.set-value f a))
                       (Result.Success 1)))))))
 
   (doc parse "Parses program flags.")
