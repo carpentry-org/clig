@@ -1,20 +1,29 @@
 (load "src/flag.carp")
 (load "src/error.carp")
 
+(doc CligProgram 
+  "CligProgram represents a runnable command line program."
+  "A CligProgram is the primary input to other Clig routines."
+  "One can add command line flags to a clig program using add-flag."
+  "Once your flags are added, parse them using parse.")
 (deftype CligProgram [name   String
                       flags  (Map String CligFlag)
                       errors (Array CligErr)
                       args   (Array String)
                       usage  String])
 (defmodule Clig
-  (doc new "Returns a new Clig program.")
+  (doc new 
+    "Returns a new clig program."
+    "Provide a program name and short usage synopsis")
   (defn new [name usage-string]
     (let [options (Map.create)
           errs    []
           args    []]
       (CligProgram.init name options errs args usage-string)))
 
-  (doc usage "Returns the usage string for a program.")
+  (doc usage 
+    "Returns the usage string for a program."
+    "The usage string will include usage help for all the program flags.")
   (defn usage [program]
     (let [flags (Map.vals (CligProgram.flags program))
           flag-helps (copy-map &flag-usage &flags)
@@ -22,13 +31,16 @@
           full-help (Array.concat &[[cli-help] flag-helps])]
       (String.join "\n\t" &full-help)))
 
-  (doc get-flag "Retrieves a program flag.")
+  (doc get-flag 
+    "Retrieves a program flag."
+    "If the flag doesn't exist, returns Maybe.Nothing.")
   (defn get-flag [program flag-name]
     (let [flags (CligProgram.flags program)]
       (get-maybe flags flag-name)))
 
-  (doc get "Retrieves the value of a program flag. Returns an empty string when
-  the flag does not exist.")
+  (doc get 
+    "Retrieves the value of a program flag." 
+    "Returns an empty string when the flag does not exist.")
   (defn get [program flag-name]
     (let [flags (CligProgram.flags program)
           default (CligFlag @""
@@ -40,6 +52,9 @@
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
 
+  (doc get-flag-by-short 
+    "Retrieves a program flag by its short name."
+    "Returns Maybe.Nothing if no flag with the short name exists.")
   (defn get-flag-by-short [program short-name]
     (let [flags       (CligProgram.flags program)
           short-keyed (Map.create)
@@ -49,7 +64,8 @@
             i))) (unsafe-nth &shorts i)))
           (get-maybe &short-keyed short-name))))
 
-  (doc add-flag "Adds a flag to a Clig program.")
+  (doc add-flag 
+    "Adds a flag to a clig program.")
   (defn add-flag [program the-flag]
     (let [existing (CligProgram.flags program)
           name     (CligFlag.name the-flag)
@@ -89,7 +105,13 @@
                                                                            @&a))
                                (Result.Error (Pair.init @(unsafe-last errs) 1))))))))))
 
-  (doc parse "Parses program flags.")
+  (doc parse 
+    "Parses program flags."
+    ("After flags are parsed, each flag in the program will be filled " false)
+    "with a value."
+    "Use get to retrieve a flag value."
+    "The programs args field will contain remaining command line arguments."
+    "If the second argument is true, cease parsing immediately on failure.")
   (defn parse [program fail]
     (let-do [errs (CligProgram.errors program)
              args &System.args
@@ -109,6 +131,8 @@
                               (if fail (break) ()))))))
               res))))
 
+  (doc get-errors-string 
+    "Returns all program parsing errors as a newline separated string.")
   (defn get-errors-string [program]
     (let [errs (copy-map &(fn [f] (Clig.Err.to-string @f)) (CligProgram.errors program))]
       (String.join "\n\t" &(Array.concat &[[@"argument parsing errors: "] errs]))))
