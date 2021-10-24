@@ -31,11 +31,11 @@
   the flag does not exist.")
   (defn get [program flag-name]
     (let [flags (CligProgram.flags program)
-          default (CligFlag @"" 
-                            (Maybe.Nothing) 
-                            (CligType.String) 
-                            @"" 
-                            @"" 
+          default (CligFlag @""
+                            (Maybe.Nothing)
+                            (CligType.String)
+                            @""
+                            @""
                             @"")
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
@@ -71,7 +71,7 @@
           (match (get-flag-by-short program &name)
             (Maybe.Just f) (parse-flag program (CligFlag.name &f) arg)
             _ (do (push-back! errs (Clig.Err.unknown-flag @flag-name))
-                  (Result.Error @(unsafe-first errs))))
+                  (Result.Error (Pair.init @(unsafe-first errs) 0))))
         (Maybe.Just f)
           (match-ref (CligFlag.t &f)
             (CligType.Bool)
@@ -80,14 +80,14 @@
             _ (match arg
                 (Maybe.Nothing)
                   (do (push-back! errs (Clig.Err.missing-argument @flag-name))
-                      (Result.Error @(unsafe-first errs)))
+                      (Result.Error (Pair.init @(unsafe-first errs) 0)))
                 (Maybe.Just a)
                   (do  (Map.put! flags &name &(CligFlag.set-value f @&a))
                        (if (valid? &(unsafe-from (get-flag program &name)))
                            (Result.Success 1)
                            (do (push-back! errs (Clig.Err.invalid-argument @flag-name
                                                                            @&a))
-                               (Result.Error @(unsafe-first errs))))))))))
+                               (Result.Error (Pair.init @(unsafe-first errs) 1))))))))))
 
   (doc parse "Parses program flags.")
   (defn parse [program fail]
@@ -103,7 +103,9 @@
                       (when (not (= i 0)) (push-back! cli-args @arg))
                       (match (parse-flag program arg (StaticArray.nth args (+ i 1)))
                         (Result.Success consumed) (+= i consumed)
-                        (Result.Error err) (do (set! res (Result.Error err))
-                                               (if fail (break) ()))))))
+                        (Result.Error errpair)
+                          (do (+= i @(Pair.b &errpair))
+                              (set! res (Result.Error @(Pair.a &errpair)))
+                              (if fail (break) ()))))))
               res))))
 )
