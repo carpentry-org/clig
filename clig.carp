@@ -22,15 +22,6 @@
           full-help (Array.concat &[[cli-help] flag-helps])]
       (String.join "\n\t" &full-help)))
 
-  (doc add-flag "Adds a flag to a Clig program.")
-  (defn add-flag [program the-flag]
-    (let [existing (CligProgram.flags program)
-          name     (CligFlag.name the-flag)
-          errs     (CligProgram.errors program)]
-      (match (get-maybe existing name)
-        (Maybe.Just _)  (push-back! errs (Clig.Err.flag-exists @name))
-        (Maybe.Nothing) (Map.put! existing name the-flag))))
-
   (doc get-flag "Retrieves a program flag.")
   (defn get-flag [program flag-name]
     (let [flags (CligProgram.flags program)]
@@ -57,6 +48,19 @@
             (Map.put! &short-keyed &(or-zero @(CligFlag.short (unsafe-nth &shorts
             i))) (unsafe-nth &shorts i)))
           (get-maybe &short-keyed short-name))))
+
+  (doc add-flag "Adds a flag to a Clig program.")
+  (defn add-flag [program the-flag]
+    (let [existing (CligProgram.flags program)
+          name     (CligFlag.name the-flag)
+          errs     (CligProgram.errors program)
+          short    &(or-zero @(CligFlag.short the-flag))]
+      (match (get-maybe existing name)
+        (Maybe.Just _)  (push-back! errs (Clig.Err.flag-exists @name))
+        (Maybe.Nothing)
+          (match (get-flag-by-short program short)
+            (Maybe.Just _)  (push-back! errs (Clig.Err.flag-exists @short))
+            (Maybe.Nothing) (Map.put! existing name the-flag)))))
 
   (defn parse-flag [program flag-name arg]
     (let [flags  (CligProgram.flags program)
