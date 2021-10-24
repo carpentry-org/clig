@@ -49,15 +49,25 @@
           flag  (get-with-default flags flag-name &default)]
       @(CliFlag.value &flag)))
 
-  ;; TODO: Match on short names
+  (defn get-flag-by-short [program short-name]
+    (let [flags       (CligProgram.flags program)
+          short-keyed (Map.create)
+          shorts      (vals flags)]
+      (do (for [i 0 (Array.length &shorts)]
+            (Map.put! &short-keyed &(or-zero @(CligFlag.short (unsafe-nth &shorts
+            i))) (unsafe-nth &shorts i)))
+          (get-maybe &short-keyed short-name))))
+
   (defn parse-flag [program flag-name arg]
-    (let [flags (CligProgram.flags program)
-          errs  (CligProgram.errors program)
-          name  (Pattern.substitute #"^\-\-?" flag-name "" 1)]
+    (let [flags  (CligProgram.flags program)
+          errs   (CligProgram.errors program)
+          name   (Pattern.substitute #"^\-\-?" flag-name "" 1)]
       (match (get-maybe flags &name)
         (Maybe.Nothing)
-          (do (push-back! errs (Clig.Err.unknown-flag @flag-name))
-              (Result.Error @(unsafe-first errs)))
+          (match (get-flag-by-short program &name)
+            (Maybe.Just f) (parse-flag program (CligFlag.name &f) arg)
+            _ (do (push-back! errs (Clig.Err.unknown-flag @flag-name))
+                  (Result.Error @(unsafe-first errs))))
         (Maybe.Just f)
           (match-ref (CligFlag.t &f)
             (CligType.Bool)

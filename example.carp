@@ -4,7 +4,7 @@
                        (Maybe.Just @"b") 
                        @"false" 
                        @"Whether or not to do something"))
-(def s (Clig.string-flag @"strr" (Maybe.Nothing) @"" @"some kind of string"))
+(def s (Clig.string-flag @"strr" (Maybe.Just @"s") @"" @"some kind of string"))
 (def i (Clig.int-flag @"intr" (Maybe.Nothing) @"" @"some kind of int"))
 (def p (Clig.new @"my-program" @"doesn't do anything interesting"))
 
