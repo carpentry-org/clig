@@ -1,8 +1,8 @@
 (load "clig.carp")
 
-(def b (Clig.bool-flag @"bool" 
-                       (Maybe.Just @"b") 
-                       @"false" 
+(def b (Clig.bool-flag @"bool"
+                       (Maybe.Just @"b")
+                       @"false"
                        @"Whether or not to do something"))
 (def s (Clig.string-flag @"strr" (Maybe.Just @"s") @"" @"some kind of string"))
 (def i (Clig.int-flag @"intr" (Maybe.Nothing) @"" @"some kind of int"))
@@ -12,8 +12,11 @@
   (do (Clig.add-flag &p &b)
       (Clig.add-flag &p &s)
       (Clig.add-flag &p &i)
-      (match (Clig.parse &p true)
-        (Result.Error e) (IO.println &(str e))
+      (match (Clig.parse &p false)
+        (Result.Error err) 
+          (do (IO.println &(String.concat &[@"last error encountered: " (str err)]))
+              (IO.println &(String.concat &[@"all errors: "
+                                           (Clig.get-errors-string &p)])))
         (Result.Success _)
           (do (IO.println "success")
               (IO.println &(str (CligProgram.args &p)))

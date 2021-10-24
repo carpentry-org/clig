@@ -71,7 +71,7 @@
           (match (get-flag-by-short program &name)
             (Maybe.Just f) (parse-flag program (CligFlag.name &f) arg)
             _ (do (push-back! errs (Clig.Err.unknown-flag @flag-name))
-                  (Result.Error (Pair.init @(unsafe-first errs) 0))))
+                  (Result.Error (Pair.init @(unsafe-last errs) 0))))
         (Maybe.Just f)
           (match-ref (CligFlag.t &f)
             (CligType.Bool)
@@ -80,14 +80,14 @@
             _ (match arg
                 (Maybe.Nothing)
                   (do (push-back! errs (Clig.Err.missing-argument @flag-name))
-                      (Result.Error (Pair.init @(unsafe-first errs) 0)))
+                      (Result.Error (Pair.init @(unsafe-last errs) 0)))
                 (Maybe.Just a)
                   (do  (Map.put! flags &name &(CligFlag.set-value f @&a))
                        (if (valid? &(unsafe-from (get-flag program &name)))
                            (Result.Success 1)
                            (do (push-back! errs (Clig.Err.invalid-argument @flag-name
                                                                            @&a))
-                               (Result.Error (Pair.init @(unsafe-first errs) 1))))))))))
+                               (Result.Error (Pair.init @(unsafe-last errs) 1))))))))))
 
   (doc parse "Parses program flags.")
   (defn parse [program fail]
@@ -108,4 +108,8 @@
                               (set! res (Result.Error @(Pair.a &errpair)))
                               (if fail (break) ()))))))
               res))))
+
+  (defn get-errors-string [program]
+    (let [errs (copy-map &(fn [f] (Clig.Err.to-string @f)) (CligProgram.errors program))]
+      (String.join "\n\t" &(Array.concat &[[@"argument parsing errors: "] errs]))))
 )
