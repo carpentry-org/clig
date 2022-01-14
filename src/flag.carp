@@ -68,4 +68,7 @@
       (when (not (empty? default))
         (set! desc (String.concat &[desc @"\tdefault value: " @default])))
       (String.join ": " &[name desc])))
+
+  (defn is-default-set? [flag]
+    (= @(CligFlag.default flag) @(CligFlag.value flag)))
 )
