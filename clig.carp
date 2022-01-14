@@ -90,9 +90,8 @@
             (Maybe.Just _)  (push-back! errs (Clig.Err.flag-exists @short))
             (Maybe.Nothing) (Map.put! existing name the-flag)))))
 
-  (defn add-flags [program flags]
-    (do (for [i 0 (Array.length flags)]
-          (Clig.add-flag program (Array.unsafe-nth flags i)))))
+  (defn add-flags [p flags]
+    (doall (fn [x] (Clig.add-flag p x)) flags))
 
   (defn parse-flag [program flag-name arg]
     (let [flags  (CligProgram.flags program)
