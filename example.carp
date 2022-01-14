@@ -9,9 +9,7 @@
 (def p (Clig.new @"my-program" @"doesn't do anything interesting"))
 
 (defn main []
-  (do (Clig.add-flag &p &b)
-      (Clig.add-flag &p &s)
-      (Clig.add-flag &p &i)
+  (do (Clig.add-flags &p [@&b @&s @&i])
       (match (Clig.parse &p false)
         (Result.Error err) 
           (do (IO.println &(String.concat &[@"last error encountered: " (str err)]))
