@@ -1,0 +1,54 @@
+(load "Test.carp")
+(load "../clig.carp")
+
+(use Test)
+
+(def force? (Clig.bool-flag @"force"
+                            (Maybe.Just @"f")
+                            @"false"
+                            @"force this operation"))
+
+(def name (Clig.string-flag @"name"
+                            (Maybe.Just @"n")
+                            @""
+                            @"your name"))
+
+(def age (Clig.int-flag @"age"
+                        (Maybe.Just @"a")
+                        @""
+                        @"your age"))
+
+(def multiplier (Clig.float-flag @"multiplier"
+                                 (Maybe.Just @"m")
+                                 @"2.0"
+                                 @"factor to multiply age by"))
+
+(def program (Clig.new @"ager" @"increase your age"))
+
+;; need this for complete macro expansion/memory workarounds
+(defn test-add-flags []
+  (do (Clig.add-flags &program [@&age @&name @&multiplier])
+      @&program))
+
+(deftest test
+  (do (Clig.add-flag &program &force?) @test)
+  (assert-equal test
+    1
+    (Map.length (CligProgram.flags &program))
+    "add-flag works as expected")
+ (assert-equal test
+   4
+   (Map.length (CligProgram.flags &(test-add-flags)))
+   "add-flags works as expected")
+ (assert-false test
+   (Clig.flag-set? &program "age")
+   "flag-set? works I")
+ (do (CligFlag.set-value! &age @"28") @test)
+ (assert-false test
+   (Clig.is-default-set? &age)
+   "is-default-set? works")
+ (do (ignore (Clig.parse-flag &program "age" (Maybe.Just @"28"))) @test)
+ (assert-true test
+   (Clig.flag-set? &program "age")
+   "flag-set? works II")
+)
