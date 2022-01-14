@@ -16,10 +16,18 @@
     "Returns a new clig program."
     "Provide a program name and short usage synopsis")
   (defn new [name usage-string]
-    (let [options (Map.create)
-          errs    []
-          args    []]
-      (CligProgram.init name options errs args usage-string)))
+    (let-do [options (Map.create)
+             errs    []
+             args    []
+             help-flag (CligFlag @"help"
+                                 (Maybe.Just @"h")
+                                 (CligType.Bool)
+                                 @""
+                                 @""
+                                 @"prints help for this program and exits")
+             program (CligProgram.init name options errs args usage-string)]
+      (Map.put! (CligProgram.flags &program) "help" &help-flag)
+      program))
 
   (doc usage
     "Returns the usage string for a program."
@@ -144,6 +152,9 @@
                           (do (+= i @(Pair.b &errpair))
                               (set! res (Result.Error @(Pair.a &errpair)))
                               (if fail (break) ()))))))
+              (when (Clig.flag-set? program "help")
+                (do (IO.println &(Clig.usage program))
+                    (exit 0)))
               res))))
 
   (doc get-errors-string
