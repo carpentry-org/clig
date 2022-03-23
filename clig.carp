@@ -146,12 +146,17 @@
                 (let [arg (unsafe-nth args i)]
                   (if (not (starts-with? arg "-"))
                       (when (not (= i 0)) (push-back! cli-args @arg))
-                      (match (parse-flag program arg (StaticArray.nth args (+ i 1)))
-                        (Result.Success consumed) (+= i consumed)
-                        (Result.Error errpair)
-                          (do (+= i @(Pair.b &errpair))
-                              (set! res (Result.Error @(Pair.a &errpair)))
-                              (if fail (break) ()))))))
+                      (if (= arg "--")
+                        (do (for [j (+ i 1) (StaticArray.length args)] 
+                              (let [narg (unsafe-nth args j)]
+                                (push-back! cli-args @narg)))
+                            (break))
+                        (match (parse-flag program arg (StaticArray.nth args (+ i 1)))
+                          (Result.Success consumed) (+= i consumed)
+                          (Result.Error errpair)
+                            (do (+= i @(Pair.b &errpair))
+                                (set! res (Result.Error @(Pair.a &errpair)))
+                                (if fail (break) ())))))))
               (when (Clig.flag-set? program "help")
                 (do (IO.println &(Clig.usage program))
                     (exit 0)))
