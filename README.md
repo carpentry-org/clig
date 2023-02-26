@@ -30,7 +30,7 @@ validation:
                                   (Maybe.Just @"b") 
                                   @"false" 
                                   @"abandon all safety"))
-(def my-int-flag (CLig.int-flag @"count" 
+(def my-int-flag (Clig.int-flag @"count" 
                                 (Maybe.Nothing) 
                                 @"1" 
                                 @"repeat n times"))
